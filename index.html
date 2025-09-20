@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Compras da Família</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <h1><i class="fas fa-cart-shopping"></i> Lista de Compras</h1>
+            <div class="user-selector">
+                <label for="currentUser">Eu sou:</label>
+                <select id="currentUser">
+                    <option>Pai</option>
+                    <option>Mãe</option>
+                    <option>Filho</option>
+                    <option>Filha</option>
+                </select>
+            </div>
+        </header>
+
+        <main>
+            <div class="controls">
+                <button id="addItemBtn"><i class="fas fa-plus"></i> Adicionar Item</button>
+                <div class="filters">
+                    <select id="categoryFilter">
+                        <option value="all">Todas as Categorias</option>
+                    </select>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="showPurchasedToggle">
+                        <span class="slider"></span>
+                        Mostrar Comprados
+                    </label>
+                    <button id="exportCsvBtn" title="Exportar para CSV"><i class="fas fa-file-csv"></i> Exportar</button>
+                </div>
+            </div>
+
+            <div id="loading" class="loading-spinner"></div>
+            
+            <section class="shopping-list">
+                <h2><i class="fas fa-list-check"></i> Itens Pendentes</h2>
+                <div id="pending-list" class="list-container">
+                    </div>
+            </section>
+            
+            <section class="shopping-list" id="purchased-section" style="display: none;">
+                <h2><i class="fas fa-check-double"></i> Itens Comprados</h2>
+                <div id="purchased-list" class="list-container">
+                    </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="addItemModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Adicionar Novo Item</h2>
+            <form id="addItemForm">
+                <input type="text" id="itemName" placeholder="Nome do item (ex: Leite)" required>
+                <input type="text" id="itemQuantity" placeholder="Quantidade (ex: 2 caixas)" required>
+                <select id="itemCategory" required>
+                    <option value="" disabled selected>Selecione a Categoria</option>
+                    <option value="Mercearia">🛒 Mercearia</option>
+                    <option value="Hortifruti">🍎 Hortifruti</option>
+                    <option value="Carnes">🥩 Carnes e Frios</option>
+                    <option value="Padaria">🥖 Padaria</option>
+                    <option value="Bebidas">🥤 Bebidas</option>
+                    <option value="Limpeza">🧼 Limpeza</option>
+                    <option value="Higiene">🧴 Higiene</p>
+                    <option value="Outros">📦 Outros</option>
+                </select>
+                <button type="submit">Adicionar à Lista</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
