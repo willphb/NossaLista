@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 else if (['Comprado', 'Arquivado'].includes(i.Status)) purchasedTotal += price;
             }
         });
-        dom.totalsContainer.innerHTML = `<div class="total-box"><h3>Total no Carrinho</h3><p>R$ ${cartTotal.toFixed(2).replace('.', ',')}</p></div><div class="total-box purchased"><h3>Total Gasto (na Vista)</h3><p>R$ ${purchasedTotal.toFixed(2).replace('.', ',')}</p></div>`;
+        dom.totalsContainer.innerHTML = `<div class="total-box"><h3>Total no Carrinho</h3><p>R$ ${cartTotal.toFixed(2).replace('.', ',')}</p></div><div class="total-box purchased"><h3>Total da Facada</h3><p>R$ ${purchasedTotal.toFixed(2).replace('.', ',')}</p></div>`;
     }
     function createItemCard(item) {
         const div = document.createElement('div');
@@ -151,4 +151,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     init();
 });
+
 
