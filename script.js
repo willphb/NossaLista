@@ -1,38 +1,27 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- CONFIGURAÇÃO ---
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLSD1qPtHuYA6SqNzr_BzQk-_r4NKIFqDi9ZdVUJWYSKDf_ul83qNQIUaDOCECtsW8UQ/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzsvU9fn5z87XogGS7SJLl7Ng1p1mqMyaawe7ygYH5T1FiEpHn5rfJPjA0tvj-fp49fwQ/exec';
 
-    // --- ESTADO GLOBAL ---
     let loggedInUser = null;
     let fullShoppingList = [];
     let categories = new Set();
 
-    // --- SELETORES DE ELEMENTOS DOM ---
     const dom = {
-        // Contêineres principais
         appContainer: document.querySelector('.app-container'),
         authContainer: document.getElementById('auth-container'),
-        
-        // Autenticação
         loginForm: document.getElementById('login-form'),
         registerForm: document.getElementById('register-form'),
         showRegister: document.getElementById('show-register'),
         showLogin: document.getElementById('show-login'),
         currentUserDisplay: document.getElementById('currentUserDisplay'),
         logoutBtn: document.getElementById('logoutBtn'),
-        
-        // Lista de Compras
         loading: document.getElementById('loading'),
         checkoutBtn: document.getElementById('checkoutBtn'),
         categoryFilter: document.getElementById('categoryFilter'),
         showPurchasedToggle: document.getElementById('showPurchasedToggle'),
-        exportCsvBtn: document.getElementById('exportCsvBtn'),
         pendingList: document.getElementById('pending-list'),
         purchasedSection: document.getElementById('purchased-section'),
         purchasedList: document.getElementById('purchased-list'),
-        
-        // Modal de Adicionar Item
         addItemBtn: document.getElementById('addItemBtn'),
         modal: document.getElementById('addItemModal'),
         closeBtn: document.querySelector('.close-btn'),
@@ -40,8 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
         itemName: document.getElementById('itemName'),
         itemQuantity: document.getElementById('itemQuantity'),
         itemCategory: document.getElementById('itemCategory'),
-        
-        // Totais
         totalsContainer: document.getElementById('totals-container')
     };
 
@@ -95,10 +82,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function showApp() {
         dom.authContainer.style.display = 'none';
         dom.appContainer.style.display = 'block';
-        dom.currentUserDisplay.textContent = `Olá, ${loggedInUser.username}`;
+        if (dom.currentUserDisplay) dom.currentUserDisplay.textContent = `Olá, ${loggedInUser.username}`;
+        if (dom.logoutBtn) dom.logoutBtn.style.display = 'inline-block';
         initializeAppListeners();
         fetchData();
-        setInterval(fetchData, 30000);
     }
 
     function showAuth() {
@@ -107,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function toggleAuthForms(e) {
-        if(e) e.preventDefault();
+        if (e) e.preventDefault();
         const isLoginVisible = dom.loginForm.style.display !== 'none';
         dom.loginForm.style.display = isLoginVisible ? 'none' : 'flex';
         dom.registerForm.style.display = isLoginVisible ? 'flex' : 'none';
@@ -116,25 +103,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- FUNÇÕES DE API ---
     async function postData(payload) {
         showLoading(true);
+        let result = null;
         try {
             const response = await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'cors', cache: 'no-cache',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload)
             });
-            const result = await response.json();
+            result = await response.json();
             if (result.status !== 'success') throw new Error(result.message);
-            if (payload.action.includes('User')) return result; // Retorna o resultado para login/register
+            if (payload.action.includes('User')) return result;
             await fetchData();
         } catch (error) {
             console.error("Erro ao enviar dados:", error);
             alert(`Ocorreu um erro: ${error.message}`);
-            return null; // Retorna nulo em caso de erro
         } finally {
             showLoading(false);
+            return result;
         }
     }
-
+    
     async function fetchData() {
         showLoading(true);
         try {
@@ -143,35 +131,24 @@ document.addEventListener('DOMContentLoaded', () => {
             fullShoppingList = await response.json();
             renderLists();
             populateCategories();
-        } catch (error) {
-            console.error("Erro ao buscar dados:", error);
-            alert("Não foi possível carregar a lista.");
-        } finally {
-            showLoading(false);
-        }
+        } catch (error) { console.error("Erro ao buscar dados:", error); alert("Não foi possível carregar a lista.");
+        } finally { showLoading(false); }
     }
-
+    
     // --- FUNÇÕES DA LISTA DE COMPRAS ---
     function renderLists() {
-        dom.pendingList.innerHTML = '';
-        dom.purchasedList.innerHTML = '';
+        dom.pendingList.innerHTML = ''; dom.purchasedList.innerHTML = '';
         const selectedCategory = dom.categoryFilter.value;
         const listToRender = fullShoppingList.filter(item => selectedCategory === 'all' || item.Categoria === selectedCategory).sort((a, b) => (a.Item || '').localeCompare(b.Item || ''));
         let pendingItemsExist = false;
         listToRender.forEach(item => {
             const itemCard = createItemCard(item);
-            if (item.Status === 'Pendente' || item.Status === 'No Carrinho') {
-                dom.pendingList.appendChild(itemCard);
-                pendingItemsExist = true;
-            } else if (item.Status === 'Comprado') {
-                dom.purchasedList.appendChild(itemCard);
-            }
+            if (item.Status === 'Pendente' || item.Status === 'No Carrinho') { dom.pendingList.appendChild(itemCard); pendingItemsExist = true; }
+            else if (item.Status === 'Comprado') { dom.purchasedList.appendChild(itemCard); }
         });
         if (!pendingItemsExist && selectedCategory === 'all') { dom.pendingList.innerHTML = '<p>Sua lista está vazia. Adicione um item!</p>'; }
-        updateVisibility();
-        renderTotals();
+        updateVisibility(); renderTotals();
     }
-
     function renderTotals() {
         let cartTotal = 0, purchasedTotal = 0;
         fullShoppingList.forEach(item => {
@@ -183,11 +160,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         dom.totalsContainer.innerHTML = `<div class="total-box"><h3>Total no Carrinho</h3><p>R$ ${cartTotal.toFixed(2).replace('.', ',')}</p></div><div class="total-box purchased"><h3>Total Gasto (Histórico)</h3><p>R$ ${purchasedTotal.toFixed(2).replace('.', ',')}</p></div>`;
     }
-
     function createItemCard(item) {
         const div = document.createElement('div');
-        div.className = 'list-item';
-        div.dataset.id = item.ID; div.dataset.category = item.Categoria; div.dataset.status = item.Status;
+        div.className = 'list-item'; div.dataset.id = item.ID; div.dataset.category = item.Categoria; div.dataset.status = item.Status;
         let actionsHtml = '', priceHtml = '';
         if (item.Status === 'Pendente') { actionsHtml = '<button class="add-to-cart-btn"><i class="fas fa-cart-plus"></i> Colocar no Carrinho</button>'; }
         else if (item.Status === 'No Carrinho') {
@@ -199,20 +174,16 @@ document.addEventListener('DOMContentLoaded', () => {
         div.innerHTML = `<div class="item-main"><div style="display: flex; justify-content: space-between; align-items: flex-start;"><div><p class="item-name">${item.Item}</p><p class="item-quantity">${item.Quantidade}</p></div>${priceHtml}</div></div><div class="item-meta">${purchasedInfo}<span><i class="fas fa-tag"></i> Cat: <strong>${item.Categoria}</strong></span></div><div class="item-actions">${actionsHtml}<button class="delete-btn" title="Excluir Item"><i class="fas fa-trash"></i></button></div>`;
         return div;
     }
-
     function populateCategories() {
-        const currentFilterValue = dom.categoryFilter.value;
-        categories.clear();
+        const currentFilterValue = dom.categoryFilter.value; categories.clear();
         fullShoppingList.forEach(item => { if (item.Categoria) categories.add(item.Categoria) });
         dom.categoryFilter.innerHTML = '<option value="all">Todas as Categorias</option>';
         [...categories].sort().forEach(cat => { dom.categoryFilter.innerHTML += `<option value="${cat}">${cat}</option>`; });
         dom.categoryFilter.value = currentFilterValue;
     }
-
     function updateVisibility() { dom.purchasedSection.style.display = dom.showPurchasedToggle.checked && dom.purchasedList.children.length > 0 ? 'block' : 'none'; }
     function showLoading(isLoading) { dom.loading.style.display = isLoading ? 'block' : 'none'; }
     
-    // --- MANIPULADORES DE EVENTOS DA LISTA ---
     function handleListClick(e) {
         const button = e.target.closest('button'); if (!button) return;
         const card = e.target.closest('.list-item'); const id = card.dataset.id;
@@ -229,31 +200,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (confirm('Excluir este item?')) { postData({ action: 'deleteItem', id }); }
         }
     }
-    
     function handleFormSubmit(e) {
         e.preventDefault();
-        const newItem = {
-            name: dom.itemName.value.trim(), quantity: dom.itemQuantity.value.trim(),
-            category: dom.itemCategory.value, addedBy: loggedInUser.username // Usa o nome do usuário logado
-        };
-        if (newItem.name && newItem.quantity && newItem.category) {
-            postData({ action: 'addItem', item: newItem });
-            dom.modal.style.display = "none";
-            dom.addItemForm.reset();
-        } else { alert('Preencha nome, quantidade e categoria.'); }
+        const newItem = { name: dom.itemName.value.trim(), quantity: dom.itemQuantity.value.trim(), category: dom.itemCategory.value, addedBy: loggedInUser.username };
+        if (newItem.name && newItem.quantity && newItem.category) { postData({ action: 'addItem', item: newItem }); dom.modal.style.display = "none"; dom.addItemForm.reset(); }
+        else { alert('Preencha nome, quantidade e categoria.'); }
     }
-    
     function handleCheckout() {
         const itemsInCart = fullShoppingList.filter(item => item.Status === 'No Carrinho').length;
         if (itemsInCart === 0) { alert("Não há itens no seu carrinho."); return; }
-        if (confirm(`Finalizar a compra de ${itemsInCart} item(ns)?`)) {
-            postData({ action: 'checkout', purchasedBy: loggedInUser.username }); // Usa o nome do usuário logado
-        }
+        if (confirm(`Finalizar a compra de ${itemsInCart} item(ns)?`)) { postData({ action: 'checkout', purchasedBy: loggedInUser.username }); }
     }
 
-    // --- INICIALIZAÇÃO ---
+    let appListenersInitialized = false;
     function initializeAppListeners() {
-        // Listeners da lista de compras (só são ativados após o login)
+        if (appListenersInitialized) return;
         dom.checkoutBtn.addEventListener('click', handleCheckout);
         dom.showPurchasedToggle.addEventListener('change', renderLists);
         dom.categoryFilter.addEventListener('change', renderLists);
@@ -263,22 +224,20 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.closeBtn.addEventListener('click', () => dom.modal.style.display = 'none');
         window.addEventListener('click', (e) => { if (e.target == dom.modal) dom.modal.style.display = "none"; });
         dom.addItemForm.addEventListener('submit', handleFormSubmit);
+        appListenersInitialized = true;
     }
     
     function init() {
-        if (!SCRIPT_URL || SCRIPT_URL === 'COLE_AQUI_O_SEU_URL_DO_APP_DA_WEB') {
+        if (!SCRIPT_URL || SCRIPT_URL === 'COLE_AQUI_O_SEU_NOVO_URL_DA_API') {
              alert('ERRO: Configure o SCRIPT_URL no arquivo script.js.'); return;
         }
-        // Listeners de autenticação (sempre ativos)
-        dom.loginForm.addEventListener('submit', handleLogin);
-        dom.registerForm.addEventListener('submit', handleRegister);
-        dom.showRegister.addEventListener('click', toggleAuthForms);
-        dom.showLogin.addEventListener('click', toggleAuthForms);
-        dom.logoutBtn.addEventListener('click', handleLogout);
+        if (dom.loginForm) dom.loginForm.addEventListener('submit', handleLogin);
+        if (dom.registerForm) dom.registerForm.addEventListener('submit', handleRegister);
+        if (dom.showRegister) dom.showRegister.addEventListener('click', toggleAuthForms);
+        if (dom.showLogin) dom.showLogin.addEventListener('click', toggleAuthForms);
+        if (dom.logoutBtn) dom.logoutBtn.addEventListener('click', handleLogout);
         
-        checkLoginStatus(); // Ponto de partida da aplicação
+        checkLoginStatus();
     }
-
     init();
 });
-
