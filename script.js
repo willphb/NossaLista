@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- CONFIGURAÇÃO ---
     // Verifique se o seu URL da API está correto aqui
-    const SCRIPT_URL = 'COLE_AQUI_O_SEU_URL_DA_API';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhrDcZV-v0o1PCiWBYiaTsZ5LTSEwT5hp20adxFPxN0IBkeOPEJ3N98icmv4XUc3bacw/exec';
 
     // --- ESTADO GLOBAL ---
     let loggedInUser = null;
@@ -390,3 +390,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     init();
 });
+
