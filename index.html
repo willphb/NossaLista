@@ -8,7 +8,30 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
+<body>
+    <div id="auth-container">
+        <div class="auth-box">
+            <form id="login-form">
+                <h2>Login</h2>
+                <input type="text" id="login-username" placeholder="Nome de Usuário" required>
+                <input type="password" id="login-password" placeholder="Senha" required>
+                <button type="submit">Entrar</button>
+                <p>Não tem uma conta? <a href="#" id="show-register">Cadastre-se</a></p>
+            </form>
 
+            <form id="register-form" style="display: none;">
+                <h2>Cadastro</h2>
+                <input type="text" id="register-username" placeholder="Crie um nome de usuário" required>
+                <input type="password" id="register-password" placeholder="Crie uma senha" required>
+                <button type="submit">Cadastrar</button>
+                <p>Já tem uma conta? <a href="#" id="show-login">Faça Login</a></p>
+            </form>
+        </div>
+    </div>
+
+    <div class="app-container" style="display: none;">
+        </div>
+</body>
     <div class="app-container">
         <header>
             <h1><i class="fas fa-cart-shopping"></i> Lista de Compras</h1>
@@ -85,3 +108,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
