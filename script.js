@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- CONFIGURAÇÃO ---
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznANogLX1rE3WAelxxgyyTxDfLDzdlUvCFyvcTeanY1N0Y9nvlScYIJTT1qsof7sMJng/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5rfKQlb4LXkUQF6RNhvnbCX94DJwlsIdY5RLwGPRTR17-FMvge9hDul7MTHgs12ij/exec';
 
     // --- ESTADO DA APLICAÇÃO ---
     let fullShoppingList = [];
@@ -255,3 +255,4 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznANogLX1rE3WAelxxg
 
     init();
 });
+
