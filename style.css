@@ -58,7 +58,7 @@ header h1 {
     gap: 10px;
 }
 
-select, input[type="text"] {
+select, input[type="text"], input[type="number"] {
     padding: 10px;
     border-radius: 8px;
     border: 1px solid #ddd;
@@ -288,6 +288,42 @@ button:hover {
     margin: 40px auto;
     display: none; /* Hidden by default */
 }
+
+/* Estilos para o container de totais */
+.totals-container {
+    background-color: var(--card-background);
+    padding: 15px 25px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.total-box {
+    flex-grow: 1;
+}
+
+.total-box h3 {
+    font-size: 1rem;
+    color: var(--text-light);
+    margin-bottom: 5px;
+    font-weight: 400;
+}
+
+.total-box p {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.total-box.purchased p {
+    color: var(--secondary-color);
+}
+
 
 @keyframes spin {
     0% { transform: rotate(0deg); }
