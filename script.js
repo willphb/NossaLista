@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTotals(list) {
         let cartTotal = 0, purchasedTotal = 0;
         list.forEach(i => { const price = parseFloat(i.Preco) || 0; const quantity = parseFloat(i.Quantidade) || 1; if (i.Status === 'No Carrinho') cartTotal += (price * quantity); else if (['Comprado', 'Arquivado'].includes(i.Status)) purchasedTotal += (price * quantity); });
-        dom.totalsContainer.innerHTML = `<div class="total-box"><h3>Total no Carrinho</h3><p>R$ ${cartTotal.toFixed(2).replace('.', ',')}</p></div><div class="total-box purchased"><h3>Total Gasto (Vista)</h3><p>R$ ${purchasedTotal.toFixed(2).replace('.', ',')}</p></div>`;
+        dom.totalsContainer.innerHTML = `<div class="total-box"><h3>Total no Carrinho</h3><p>R$ ${cartTotal.toFixed(2).replace('.', ',')}</p></div><div class="total-box purchased"><h3>Total da FACADA</h3><p>R$ ${purchasedTotal.toFixed(2).replace('.', ',')}</p></div>`;
     }
     function createItemCard(item) {
         const div = document.createElement('div'); div.className = 'list-item'; div.dataset.id = item.ID; div.dataset.category = item.Categoria; div.dataset.status = item.Status;
@@ -130,3 +130,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     init();
 });
+
