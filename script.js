@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- CONFIGURAÇÃO ---
-    // !!! IMPORTANTE: Cole aqui o URL do seu App da Web do Google Apps Script !!!
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznANogLX1rE3WAelxxgyyTxDfLDzdlUvCFyvcTeanY1N0Y9nvlScYIJTT1qsof7sMJng/exec';
 
     // --- ESTADO DA APLICAÇÃO ---
@@ -13,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loading: document.getElementById('loading'),
         currentUser: document.getElementById('currentUser'),
         addItemBtn: document.getElementById('addItemBtn'),
-        checkoutBtn: document.getElementById('checkoutBtn'), // Botão Finalizar Compra
+        checkoutBtn: document.getElementById('checkoutBtn'),
         categoryFilter: document.getElementById('categoryFilter'),
         showPurchasedToggle: document.getElementById('showPurchasedToggle'),
         exportCsvBtn: document.getElementById('exportCsvBtn'),
@@ -25,25 +24,22 @@ document.addEventListener('DOMContentLoaded', () => {
         addItemForm: document.getElementById('addItemForm'),
         itemName: document.getElementById('itemName'),
         itemQuantity: document.getElementById('itemQuantity'),
-        itemPrice: document.getElementById('itemPrice'),
         itemCategory: document.getElementById('itemCategory'),
         totalsContainer: document.getElementById('totals-container')
     };
 
     // --- FUNÇÕES DE API ---
-
     async function fetchData() {
         showLoading(true);
         try {
             const response = await fetch(SCRIPT_URL);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const data = await response.json();
-            fullShoppingList = data;
-            populateCategories();
+            fullShoppingList = await response.json();
             renderLists();
+            populateCategories();
         } catch (error) {
             console.error("Erro ao buscar dados:", error);
-            alert("Não foi possível carregar a lista. Verifique o console para mais detalhes.");
+            alert("Não foi possível carregar a lista.");
         } finally {
             showLoading(false);
         }
@@ -56,9 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 mode: 'cors',
                 cache: 'no-cache',
-                credentials: 'omit',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                redirect: 'follow',
                 body: JSON.stringify(payload)
             });
             const result = await response.json();
@@ -66,14 +59,13 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetchData();
         } catch (error) {
             console.error("Erro ao enviar dados:", error);
-            alert("Ocorreu um erro ao salvar a alteração. Tente novamente.");
+            alert("Ocorreu um erro ao salvar a alteração.");
         } finally {
             showLoading(false);
         }
     }
 
     // --- FUNÇÕES DE RENDERIZAÇÃO E UI ---
-
     function renderLists() {
         dom.pendingList.innerHTML = '';
         dom.purchasedList.innerHTML = '';
@@ -95,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         if (!pendingItemsExist && selectedCategory === 'all') {
-            dom.pendingList.innerHTML = '<p>Nenhum item na lista. Adicione um!</p>';
+            dom.pendingList.innerHTML = '<p>Sua lista está vazia. Adicione um item!</p>';
         }
 
         updateVisibility();
@@ -109,23 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
         fullShoppingList.forEach(item => {
             const price = parseFloat(item.Preco);
             if (!isNaN(price)) {
-                if (item.Status === 'No Carrinho') {
-                    cartTotal += price;
-                } else if (item.Status === 'Comprado') {
-                    purchasedTotal += price;
-                }
+                if (item.Status === 'No Carrinho') cartTotal += price;
+                else if (item.Status === 'Comprado') purchasedTotal += price;
             }
         });
 
         dom.totalsContainer.innerHTML = `
-            <div class="total-box">
-                <h3>Total no Carrinho</h3>
-                <p>R$ ${cartTotal.toFixed(2).replace('.', ',')}</p>
-            </div>
-            <div class="total-box purchased">
-                <h3>Total Gasto (Histórico)</h3>
-                <p>R$ ${purchasedTotal.toFixed(2).replace('.', ',')}</p>
-            </div>
+            <div class="total-box"><h3>Total no Carrinho</h3><p>R$ ${cartTotal.toFixed(2).replace('.', ',')}</p></div>
+            <div class="total-box purchased"><h3>Total Gasto (Histórico)</h3><p>R$ ${purchasedTotal.toFixed(2).replace('.', ',')}</p></div>
         `;
     }
 
@@ -140,89 +123,48 @@ document.addEventListener('DOMContentLoaded', () => {
         let priceHtml = '';
 
         if (item.Status === 'Pendente') {
-            actionsHtml = '<button class="add-price-btn"><i class="fas fa-dollar-sign"></i> Adicionar Preço</button>';
+            actionsHtml = '<button class="add-to-cart-btn"><i class="fas fa-cart-plus"></i> Colocar no Carrinho</button>';
         } else if (item.Status === 'No Carrinho') {
             const formattedPrice = `R$ ${parseFloat(item.Preco || 0).toFixed(2).replace('.', ',')}`;
             priceHtml = `<p class="item-price" style="font-size: 1.4rem; font-weight: 600; color: #333;">${formattedPrice}</p>`;
             actionsHtml = '<button class="edit-price-btn"><i class="fas fa-pencil-alt"></i> Editar Preço</button>';
         }
 
-        const purchasedInfo = item.Status === 'Comprado' ?
-            `<span><i class="fas fa-check"></i> Comprado por: <strong>${item.CompradoPor}</strong></span>
-             <span><i class="fas fa-clock"></i> Em: ${new Date(item.CompradoEm).toLocaleString('pt-BR')}</span>` : '';
+        const purchasedInfo = item.Status === 'Comprado' ? `<span><i class="fas fa-check"></i> Por: <strong>${item.CompradoPor}</strong> em ${new Date(item.CompradoEm).toLocaleDateString('pt-BR')}</span>` : `<span><i class="fas fa-user"></i> Por: <strong>${item.AdicionadoPor}</strong></span>`;
 
         div.innerHTML = `
             <div class="item-main">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div>
-                        <p class="item-name">${item.Item}</p>
-                        <p class="item-quantity">${item.Quantidade}</p>
-                    </div>
+                    <div><p class="item-name">${item.Item}</p><p class="item-quantity">${item.Quantidade}</p></div>
                     ${priceHtml}
                 </div>
             </div>
-            <div class="item-meta">
-                <span><i class="fas fa-user"></i> Adicionado por: <strong>${item.AdicionadoPor}</strong></span>
-                <span><i class="fas fa-tag"></i> Categoria: <strong>${item.Categoria}</strong></span>
-                ${purchasedInfo}
-            </div>
-            <div class="item-actions">
-                ${actionsHtml}
-                <button class="delete-btn"><i class="fas fa-trash"></i> Excluir</button>
-            </div>
+            <div class="item-meta">${purchasedInfo}<span><i class="fas fa-tag"></i> Cat: <strong>${item.Categoria}</strong></span></div>
+            <div class="item-actions">${actionsHtml}<button class="delete-btn"><i class="fas fa-trash"></i></button></div>
         `;
         return div;
     }
 
     function populateCategories() {
-        categories.clear();
-        fullShoppingList.forEach(item => {
-            if (item.Categoria) categories.add(item.Categoria);
-        });
-        
         const currentFilterValue = dom.categoryFilter.value;
+        categories.clear();
+        fullShoppingList.forEach(item => { if (item.Categoria) categories.add(item.Categoria) });
         dom.categoryFilter.innerHTML = '<option value="all">Todas as Categorias</option>';
         [...categories].sort().forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat;
-            option.textContent = cat;
-            dom.categoryFilter.appendChild(option);
+            dom.categoryFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
         });
         dom.categoryFilter.value = currentFilterValue;
     }
 
     function updateVisibility() {
-        const showPurchased = dom.showPurchasedToggle.checked;
-        dom.purchasedSection.style.display = showPurchased && dom.purchasedList.children.length > 0 ? 'block' : 'none';
+        dom.purchasedSection.style.display = dom.showPurchasedToggle.checked && dom.purchasedList.children.length > 0 ? 'block' : 'none';
     }
 
     function showLoading(isLoading) {
         dom.loading.style.display = isLoading ? 'block' : 'none';
     }
 
-    function exportToCsv() {
-        const headers = ['ID', 'Item', 'Quantidade', 'Preco', 'Categoria', 'AdicionadoPor', 'Status', 'CompradoPor', 'CompradoEm'];
-        const rows = fullShoppingList.map(item => 
-            [
-                `"${item.ID}"`, `"${item.Item}"`, `"${item.Quantidade}"`,
-                `"${typeof item.Preco === 'number' ? item.Preco.toFixed(2) : '0.00'}"`,
-                `"${item.Categoria}"`, `"${item.AdicionadoPor}"`, `"${item.Status}"`,
-                `"${item.CompradoPor}"`, `"${item.CompradoEm ? new Date(item.CompradoEm).toLocaleString('pt-BR') : ''}"`
-            ].join(',')
-        );
-
-        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "lista_de_compras.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-    
     // --- MANIPULADORES DE EVENTOS ---
-
     function handleListClick(e) {
         const button = e.target.closest('button');
         if (!button) return;
@@ -230,19 +172,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = e.target.closest('.list-item');
         const id = card.dataset.id;
         
-        if (button.classList.contains('add-price-btn') || button.classList.contains('edit-price-btn')) {
+        if (button.classList.contains('add-to-cart-btn') || button.classList.contains('edit-price-btn')) {
             const item = fullShoppingList.find(i => i.ID === id);
-            const currentPrice = item ? item.Preco : '';
+            const currentPrice = item && item.Preco > 0 ? item.Preco : '';
             const newPriceStr = prompt(`Qual o preço de "${item.Item}"?`, currentPrice);
             
-            if (newPriceStr !== null) { // Permite preço 0, mas não cancelamento
+            if (newPriceStr !== null) {
                 const newPriceNum = parseFloat(newPriceStr.replace(',', '.'));
-                if (!isNaN(newPriceNum)) {
-                    postData({ 
-                        action: 'moveToCart', 
-                        id: id, 
-                        price: newPriceNum
-                    });
+                if (!isNaN(newPriceNum) && newPriceNum >= 0) {
+                    postData({ action: 'moveToCart', id: id, price: newPriceNum });
                 } else {
                     alert('Por favor, insira um número válido para o preço.');
                 }
@@ -259,7 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const newItem = {
             name: dom.itemName.value.trim(),
             quantity: dom.itemQuantity.value.trim(),
-            // Não enviamos mais o preço daqui, ele começa como 0 no backend
             category: dom.itemCategory.value,
             addedBy: dom.currentUser.value
         };
@@ -268,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dom.modal.style.display = "none";
             dom.addItemForm.reset();
         } else {
-            alert('Por favor, preencha todos os campos obrigatórios.');
+            alert('Por favor, preencha nome, quantidade e categoria.');
         }
     }
     
@@ -288,13 +225,10 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.addItemBtn.addEventListener('click', () => dom.modal.style.display = 'block');
         dom.checkoutBtn.addEventListener('click', handleCheckout);
         dom.closeBtn.addEventListener('click', () => dom.modal.style.display = 'none');
-        window.addEventListener('click', (e) => {
-            if (e.target == dom.modal) dom.modal.style.display = "none";
-        });
+        window.addEventListener('click', (e) => { if (e.target == dom.modal) dom.modal.style.display = "none"; });
         dom.addItemForm.addEventListener('submit', handleFormSubmit);
-        dom.showPurchasedToggle.addEventListener('change', updateVisibility);
+        dom.showPurchasedToggle.addEventListener('change', renderLists);
         dom.categoryFilter.addEventListener('change', renderLists);
-        dom.exportCsvBtn.addEventListener('click', exportToCsv);
         dom.pendingList.addEventListener('click', handleListClick);
         dom.purchasedList.addEventListener('click', handleListClick);
     }
@@ -302,12 +236,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- INICIALIZAÇÃO ---
     function init() {
         if (!SCRIPT_URL || SCRIPT_URL === 'COLE_AQUI_O_SEU_URL_DO_APP_DA_WEB') {
-             alert('ERRO DE CONFIGURAÇÃO: Por favor, edite o arquivo script.js e insira o URL do seu Google Apps Script.');
+             alert('ERRO: Configure o SCRIPT_URL no arquivo script.js.');
              return;
         }
         setupEventListeners();
         fetchData();
-        setInterval(fetchData, 30000); // Atualiza a lista automaticamente a cada 30 segundos
+        setInterval(fetchData, 30000);
     }
 
     init();
