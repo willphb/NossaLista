@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loading: document.getElementById('loading'),
         currentUser: document.getElementById('currentUser'),
         addItemBtn: document.getElementById('addItemBtn'),
+        checkoutBtn: document.getElementById('checkoutBtn'), // Botão Finalizar Compra
         categoryFilter: document.getElementById('categoryFilter'),
         showPurchasedToggle: document.getElementById('showPurchasedToggle'),
         exportCsvBtn: document.getElementById('exportCsvBtn'),
@@ -24,16 +25,13 @@ document.addEventListener('DOMContentLoaded', () => {
         addItemForm: document.getElementById('addItemForm'),
         itemName: document.getElementById('itemName'),
         itemQuantity: document.getElementById('itemQuantity'),
-        itemPrice: document.getElementById('itemPrice'), // Seletor para o preço
+        itemPrice: document.getElementById('itemPrice'),
         itemCategory: document.getElementById('itemCategory'),
-        totalsContainer: document.getElementById('totals-container') // Seletor para os totais
+        totalsContainer: document.getElementById('totals-container')
     };
 
-    // --- FUNÇÕES PRINCIPAIS ---
+    // --- FUNÇÕES DE API ---
 
-    /**
-     * Busca os dados da planilha do Google.
-     */
     async function fetchData() {
         showLoading(true);
         try {
@@ -51,10 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Envia dados para a planilha do Google.
-     * @param {object} payload - O objeto de dados a ser enviado.
-     */
     async function postData(payload) {
         showLoading(true);
         try {
@@ -69,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const result = await response.json();
             if (result.status !== 'success') throw new Error(result.message);
-            await fetchData(); // Recarrega os dados após a alteração
+            await fetchData();
         } catch (error) {
             console.error("Erro ao enviar dados:", error);
             alert("Ocorreu um erro ao salvar a alteração. Tente novamente.");
@@ -78,9 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Renderiza as listas de itens (pendentes e comprados).
-     */
+    // --- FUNÇÕES DE RENDERIZAÇÃO E UI ---
+
     function renderLists() {
         dom.pendingList.innerHTML = '';
         dom.purchasedList.innerHTML = '';
@@ -90,35 +83,34 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter(item => selectedCategory === 'all' || item.Categoria === selectedCategory)
             .sort((a, b) => (a.Item || '').localeCompare(b.Item || ''));
 
-        if (listToRender.length === 0 && selectedCategory === 'all') {
-            dom.pendingList.innerHTML = '<p>Nenhum item na lista. Adicione um!</p>';
-        }
-
+        let pendingItemsExist = false;
         listToRender.forEach(item => {
             const itemCard = createItemCard(item);
-            if (item.Status === 'Comprado') {
-                dom.purchasedList.appendChild(itemCard);
-            } else {
+            if (item.Status === 'Pendente' || item.Status === 'No Carrinho') {
                 dom.pendingList.appendChild(itemCard);
+                pendingItemsExist = true;
+            } else if (item.Status === 'Comprado') {
+                dom.purchasedList.appendChild(itemCard);
             }
         });
         
+        if (!pendingItemsExist && selectedCategory === 'all') {
+            dom.pendingList.innerHTML = '<p>Nenhum item na lista. Adicione um!</p>';
+        }
+
         updateVisibility();
-        renderTotals(); // Chamada para renderizar os totais
+        renderTotals();
     }
-    
-    /**
-     * Calcula e renderiza os totais de itens pendentes e comprados.
-     */
+
     function renderTotals() {
-        let pendingTotal = 0;
+        let cartTotal = 0;
         let purchasedTotal = 0;
 
         fullShoppingList.forEach(item => {
             const price = parseFloat(item.Preco);
             if (!isNaN(price)) {
-                if (item.Status === 'Pendente') {
-                    pendingTotal += price;
+                if (item.Status === 'No Carrinho') {
+                    cartTotal += price;
                 } else if (item.Status === 'Comprado') {
                     purchasedTotal += price;
                 }
@@ -127,30 +119,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dom.totalsContainer.innerHTML = `
             <div class="total-box">
-                <h3>Total Pendente</h3>
-                <p>R$ ${pendingTotal.toFixed(2).replace('.', ',')}</p>
+                <h3>Total no Carrinho</h3>
+                <p>R$ ${cartTotal.toFixed(2).replace('.', ',')}</p>
             </div>
             <div class="total-box purchased">
-                <h3>Total Gasto</h3>
+                <h3>Total Gasto (Histórico)</h3>
                 <p>R$ ${purchasedTotal.toFixed(2).replace('.', ',')}</p>
             </div>
         `;
     }
 
-    /**
-     * Cria o HTML de um card de item.
-     * @param {object} item - O objeto do item.
-     * @returns {HTMLElement} O elemento do card.
-     */
     function createItemCard(item) {
         const div = document.createElement('div');
         div.className = 'list-item';
         div.dataset.id = item.ID;
         div.dataset.category = item.Categoria;
+        div.dataset.status = item.Status;
 
-        const formattedPrice = (typeof item.Preco === 'number' && !isNaN(item.Preco) && item.Preco > 0)
-            ? `R$ ${item.Preco.toFixed(2).replace('.', ',')}`
-            : '';
+        let actionsHtml = '';
+        let priceHtml = '';
+
+        if (item.Status === 'Pendente') {
+            actionsHtml = '<button class="add-price-btn"><i class="fas fa-dollar-sign"></i> Adicionar Preço</button>';
+        } else if (item.Status === 'No Carrinho') {
+            const formattedPrice = `R$ ${parseFloat(item.Preco || 0).toFixed(2).replace('.', ',')}`;
+            priceHtml = `<p class="item-price" style="font-size: 1.4rem; font-weight: 600; color: #333;">${formattedPrice}</p>`;
+            actionsHtml = '<button class="edit-price-btn"><i class="fas fa-pencil-alt"></i> Editar Preço</button>';
+        }
 
         const purchasedInfo = item.Status === 'Comprado' ?
             `<span><i class="fas fa-check"></i> Comprado por: <strong>${item.CompradoPor}</strong></span>
@@ -163,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p class="item-name">${item.Item}</p>
                         <p class="item-quantity">${item.Quantidade}</p>
                     </div>
-                    ${formattedPrice ? `<p class="item-price" style="font-size: 1.4rem; font-weight: 600; color: #333;">${formattedPrice}</p>` : ''}
+                    ${priceHtml}
                 </div>
             </div>
             <div class="item-meta">
@@ -172,20 +167,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${purchasedInfo}
             </div>
             <div class="item-actions">
-                ${item.Status !== 'Comprado' ? '<button class="purchase-btn"><i class="fas fa-check"></i> Marcar como Comprado</button>' : ''}
+                ${actionsHtml}
                 <button class="delete-btn"><i class="fas fa-trash"></i> Excluir</button>
             </div>
         `;
         return div;
     }
 
-    /**
-     * Extrai categorias únicas da lista e preenche o filtro.
-     */
     function populateCategories() {
         categories.clear();
         fullShoppingList.forEach(item => {
-            if(item.Categoria) categories.add(item.Categoria)
+            if (item.Categoria) categories.add(item.Categoria);
         });
         
         const currentFilterValue = dom.categoryFilter.value;
@@ -199,9 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.categoryFilter.value = currentFilterValue;
     }
 
-    /**
-     * Controla a visibilidade da seção de comprados e spinner.
-     */
     function updateVisibility() {
         const showPurchased = dom.showPurchasedToggle.checked;
         dom.purchasedSection.style.display = showPurchased && dom.purchasedList.children.length > 0 ? 'block' : 'none';
@@ -211,21 +200,14 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.loading.style.display = isLoading ? 'block' : 'none';
     }
 
-    /**
-     * Exporta a lista atual para um arquivo CSV.
-     */
     function exportToCsv() {
-        const headers = ['Item', 'Quantidade', 'Preco', 'Categoria', 'Status', 'AdicionadoPor', 'CompradoPor', 'CompradoEm'];
+        const headers = ['ID', 'Item', 'Quantidade', 'Preco', 'Categoria', 'AdicionadoPor', 'Status', 'CompradoPor', 'CompradoEm'];
         const rows = fullShoppingList.map(item => 
             [
-                `"${item.Item}"`,
-                `"${item.Quantidade}"`,
+                `"${item.ID}"`, `"${item.Item}"`, `"${item.Quantidade}"`,
                 `"${typeof item.Preco === 'number' ? item.Preco.toFixed(2) : '0.00'}"`,
-                `"${item.Categoria}"`,
-                `"${item.Status}"`,
-                `"${item.AdicionadoPor}"`,
-                `"${item.CompradoPor}"`,
-                `"${item.CompradoEm ? new Date(item.CompradoEm).toLocaleString('pt-BR') : ''}"`
+                `"${item.Categoria}"`, `"${item.AdicionadoPor}"`, `"${item.Status}"`,
+                `"${item.CompradoPor}"`, `"${item.CompradoEm ? new Date(item.CompradoEm).toLocaleString('pt-BR') : ''}"`
             ].join(',')
         );
 
@@ -248,9 +230,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = e.target.closest('.list-item');
         const id = card.dataset.id;
         
-        if (button.classList.contains('purchase-btn')) {
-            if (confirm('Marcar este item como comprado?')) {
-                postData({ action: 'markAsPurchased', id: id, purchasedBy: dom.currentUser.value });
+        if (button.classList.contains('add-price-btn') || button.classList.contains('edit-price-btn')) {
+            const item = fullShoppingList.find(i => i.ID === id);
+            const currentPrice = item ? item.Preco : '';
+            const newPriceStr = prompt(`Qual o preço de "${item.Item}"?`, currentPrice);
+            
+            if (newPriceStr !== null) { // Permite preço 0, mas não cancelamento
+                const newPriceNum = parseFloat(newPriceStr.replace(',', '.'));
+                if (!isNaN(newPriceNum)) {
+                    postData({ 
+                        action: 'moveToCart', 
+                        id: id, 
+                        price: newPriceNum
+                    });
+                } else {
+                    alert('Por favor, insira um número válido para o preço.');
+                }
             }
         } else if (button.classList.contains('delete-btn')) {
             if (confirm('Tem certeza que deseja excluir este item?')) {
@@ -264,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const newItem = {
             name: dom.itemName.value.trim(),
             quantity: dom.itemQuantity.value.trim(),
-            price: parseFloat(dom.itemPrice.value.replace(',', '.')) || 0,
+            // Não enviamos mais o preço daqui, ele começa como 0 no backend
             category: dom.itemCategory.value,
             addedBy: dom.currentUser.value
         };
@@ -276,9 +271,22 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Por favor, preencha todos os campos obrigatórios.');
         }
     }
+    
+    function handleCheckout() {
+        const itemsInCart = fullShoppingList.filter(item => item.Status === 'No Carrinho').length;
+        if (itemsInCart === 0) {
+            alert("Não há itens no seu carrinho para finalizar.");
+            return;
+        }
+        
+        if (confirm(`Finalizar a compra de ${itemsInCart} item(ns)? Eles serão movidos para o histórico.`)) {
+            postData({ action: 'checkout', purchasedBy: dom.currentUser.value });
+        }
+    }
 
     function setupEventListeners() {
         dom.addItemBtn.addEventListener('click', () => dom.modal.style.display = 'block');
+        dom.checkoutBtn.addEventListener('click', handleCheckout);
         dom.closeBtn.addEventListener('click', () => dom.modal.style.display = 'none');
         window.addEventListener('click', (e) => {
             if (e.target == dom.modal) dom.modal.style.display = "none";
@@ -287,7 +295,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.showPurchasedToggle.addEventListener('change', updateVisibility);
         dom.categoryFilter.addEventListener('change', renderLists);
         dom.exportCsvBtn.addEventListener('click', exportToCsv);
-
         dom.pendingList.addEventListener('click', handleListClick);
         dom.purchasedList.addEventListener('click', handleListClick);
     }
