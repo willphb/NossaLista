@@ -45,25 +45,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function postData(payload) {
-        showLoading(true);
-        try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'cors',
-                cache: 'no-cache',
-                body: JSON.stringify(payload)
-            });
-            const result = await response.json();
-            if (result.status !== 'success') throw new Error(result.message);
-            await fetchData();
-        } catch (error) {
-            console.error("Erro ao enviar dados:", error);
-            alert("Ocorreu um erro ao salvar a alteração.");
-        } finally {
-            showLoading(false);
+   // VERSÃO CORRIGIDA - Substitua a sua função postData por esta
+
+async function postData(payload) {
+    showLoading(true);
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'cors',
+            cache: 'no-cache',
+            // A LINHA ABAIXO É A CORREÇÃO. Ela especifica o formato do envio.
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8',
+            },
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (result.status !== 'success') {
+            // Mostra uma mensagem de erro mais detalhada vinda do script
+            throw new Error(result.message || 'Erro desconhecido no script.');
         }
+        await fetchData();
+    } catch (error) {
+        console.error("Erro ao enviar dados:", error);
+        // O alerta agora pode mostrar uma mensagem mais útil
+        alert("Ocorreu um erro ao salvar a alteração: " + error.message);
+    } finally {
+        showLoading(false);
     }
+}
 
     // --- FUNÇÕES DE RENDERIZAÇÃO E UI ---
     function renderLists() {
@@ -246,3 +256,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     init();
 });
+
