@@ -105,6 +105,13 @@ button:hover {
     background-color: #38c1a5;
 }
 
+.checkout-btn {
+    background-color: var(--secondary-color);
+}
+.checkout-btn:hover {
+    background-color: #38c1a5;
+}
+
 .shopping-list h2 {
     margin-bottom: 1rem;
     color: #555;
@@ -126,8 +133,8 @@ button:hover {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    border-left: 8px solid var(--primary-color);
-    transition: transform 0.2s, box-shadow 0.2s;
+    border-left: 8px solid var(--text-light); /* Cor padrão para Pendente */
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
 }
 .list-item:hover {
     transform: translateY(-5px);
@@ -181,21 +188,28 @@ button:hover {
     color: white;
 }
 
-/* Category Colors */
-.list-item[data-category="Mercearia"] { border-color: var(--cat-mercearia); }
-.list-item[data-category="Hortifruti"] { border-color: var(--cat-hortifruti); }
-.list-item[data-category="Carnes"] { border-color: var(--cat-carnes); }
-.list-item[data-category="Padaria"] { border-color: var(--cat-padaria); }
-.list-item[data-category="Bebidas"] { border-color: var(--cat-bebidas); }
-.list-item[data-category="Limpeza"] { border-color: var(--cat-limpeza); }
-.list-item[data-category="Higiene"] { border-color: var(--cat-higiene); }
-.list-item[data-category="Outros"] { border-color: var(--cat-outros); }
+/* Category Colors (usado para itens Pendentes) */
+.list-item[data-status="Pendente"][data-category="Mercearia"] { border-color: var(--cat-mercearia); }
+.list-item[data-status="Pendente"][data-category="Hortifruti"] { border-color: var(--cat-hortifruti); }
+.list-item[data-status="Pendente"][data-category="Carnes"] { border-color: var(--cat-carnes); }
+.list-item[data-status="Pendente"][data-category="Padaria"] { border-color: var(--cat-padaria); }
+.list-item[data-status="Pendente"][data-category="Bebidas"] { border-color: var(--cat-bebidas); }
+.list-item[data-status="Pendente"][data-category="Limpeza"] { border-color: var(--cat-limpeza); }
+.list-item[data-status="Pendente"][data-category="Higiene"] { border-color: var(--cat-higiene); }
+.list-item[data-status="Pendente"][data-category="Outros"] { border-color: var(--cat-outros); }
+
+/* Estilo para itens no carrinho */
+.list-item[data-status="No Carrinho"] {
+    border-color: var(--primary-color);
+    background-color: #eaf2fa;
+}
 
 
 /* Purchased Items Style */
 #purchased-list .list-item {
     opacity: 0.7;
     border-color: #bdc3c7;
+    background-color: var(--card-background);
 }
 #purchased-list .item-name {
     text-decoration: line-through;
