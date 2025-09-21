@@ -376,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function init() {
-        if (!SCRIPT_URL || SCRIPT_URL === 'COLE_AQUI_O_SEU_NOVO_URL_DA_API') {
+        if (!SCRIPT_URL || SCRIPT_URL === 'COLE_AQUI_O_SEU_URL_DA_API') {
              alert('ERRO: Configure o SCRIPT_URL no arquivo script.js.');
              return;
         }
@@ -390,4 +390,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     init();
 });
-
