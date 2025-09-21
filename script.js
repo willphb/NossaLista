@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- CONFIGURAÇÃO ---
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznANogLX1rE3WAelxxgyyTxDfLDzdlUvCFyvcTeanY1N0Y9nvlScYIJTT1qsof7sMJng/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznANogLX1rE3WAelxxgyyTxDfLDzdlUvCFyvcTeanY1N0Y9nvlScYIJTT1qsof7sMJng/exec';
 
     // --- ESTADO DA APLICAÇÃO ---
     let fullShoppingList = [];
@@ -45,35 +45,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-   // VERSÃO CORRIGIDA - Substitua a sua função postData por esta
-
-async function postData(payload) {
-    showLoading(true);
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'cors',
-            cache: 'no-cache',
-            // A LINHA ABAIXO É A CORREÇÃO. Ela especifica o formato do envio.
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8',
-            },
-            body: JSON.stringify(payload)
-        });
-        const result = await response.json();
-        if (result.status !== 'success') {
-            // Mostra uma mensagem de erro mais detalhada vinda do script
-            throw new Error(result.message || 'Erro desconhecido no script.');
+    async function postData(payload) {
+        showLoading(true);
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
+                // A LINHA ABAIXO É A CORREÇÃO. Ela especifica o formato do envio.
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8',
+                },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            if (result.status !== 'success') {
+                // Mostra uma mensagem de erro mais detalhada vinda do script
+                throw new Error(result.message || 'Erro desconhecido no script.');
+            }
+            await fetchData();
+        } catch (error) {
+            console.error("Erro ao enviar dados:", error);
+            // O alerta agora pode mostrar uma mensagem mais útil
+            alert("Ocorreu um erro ao salvar a alteração: " + error.message);
+        } finally {
+            showLoading(false);
         }
-        await fetchData();
-    } catch (error) {
-        console.error("Erro ao enviar dados:", error);
-        // O alerta agora pode mostrar uma mensagem mais útil
-        alert("Ocorreu um erro ao salvar a alteração: " + error.message);
-    } finally {
-        showLoading(false);
     }
-}
+
 
     // --- FUNÇÕES DE RENDERIZAÇÃO E UI ---
     function renderLists() {
@@ -150,7 +149,7 @@ async function postData(payload) {
                 </div>
             </div>
             <div class="item-meta">${purchasedInfo}<span><i class="fas fa-tag"></i> Cat: <strong>${item.Categoria}</strong></span></div>
-            <div class="item-actions">${actionsHtml}<button class="delete-btn"><i class="fas fa-trash"></i></button></div>
+            <div class="item-actions">${actionsHtml}<button class="delete-btn" title="Excluir Item"><i class="fas fa-trash"></i></button></div>
         `;
         return div;
     }
@@ -256,4 +255,3 @@ async function postData(payload) {
 
     init();
 });
-
