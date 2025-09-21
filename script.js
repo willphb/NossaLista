@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    const SCRIPT_URL = 'COLE_AQUI_O_SEU_NOVO_URL_DA_API';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhrDcZV-v0o1PCiWBYiaTsZ5LTSEwT5hp20adxFPxN0IBkeOPEJ3N98icmv4XUc3bacw/exec';
 
     let loggedInUser = null; let fullShoppingList = []; let categories = new Set();
     const dom = {
@@ -132,3 +132,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     init();
 });
+
