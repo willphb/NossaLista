@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Verifique se o seu URL da API está correto aqui
-    const SCRIPT_URL = 'COLE_AQUI_O_SEU_URL_DA_API';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx7VkiEBHEt0aoBeSSSrYjHv9uL66x68vNIxZqygIK0We3BNScCBqlnuLlK6apZspBuAA/exec';
 
     let loggedInUser = null; let fullShoppingList = []; let categories = new Set();
     const dom = {
@@ -151,3 +151,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     init();
 });
+
