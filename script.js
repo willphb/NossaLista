@@ -24,7 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
         addItemForm: document.getElementById('addItemForm'),
         itemName: document.getElementById('itemName'),
         itemQuantity: document.getElementById('itemQuantity'),
-        itemCategory: document.getElementById('itemCategory')
+        itemPrice: document.getElementById('itemPrice'), // Seletor para o preço
+        itemCategory: document.getElementById('itemCategory'),
+        totalsContainer: document.getElementById('totals-container') // Seletor para os totais
     };
 
     // --- FUNÇÕES PRINCIPAIS ---
@@ -61,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 mode: 'cors',
                 cache: 'no-cache',
                 credentials: 'omit',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Usar text/plain para contornar limitações de CORS com GAS
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 redirect: 'follow',
                 body: JSON.stringify(payload)
             });
@@ -88,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter(item => selectedCategory === 'all' || item.Categoria === selectedCategory)
             .sort((a, b) => (a.Item || '').localeCompare(b.Item || ''));
 
-        if (listToRender.length === 0) {
+        if (listToRender.length === 0 && selectedCategory === 'all') {
             dom.pendingList.innerHTML = '<p>Nenhum item na lista. Adicione um!</p>';
         }
 
@@ -102,6 +104,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         updateVisibility();
+        renderTotals(); // Chamada para renderizar os totais
+    }
+    
+    /**
+     * Calcula e renderiza os totais de itens pendentes e comprados.
+     */
+    function renderTotals() {
+        let pendingTotal = 0;
+        let purchasedTotal = 0;
+
+        fullShoppingList.forEach(item => {
+            const price = parseFloat(item.Preco);
+            if (!isNaN(price)) {
+                if (item.Status === 'Pendente') {
+                    pendingTotal += price;
+                } else if (item.Status === 'Comprado') {
+                    purchasedTotal += price;
+                }
+            }
+        });
+
+        dom.totalsContainer.innerHTML = `
+            <div class="total-box">
+                <h3>Total Pendente</h3>
+                <p>R$ ${pendingTotal.toFixed(2).replace('.', ',')}</p>
+            </div>
+            <div class="total-box purchased">
+                <h3>Total Gasto</h3>
+                <p>R$ ${purchasedTotal.toFixed(2).replace('.', ',')}</p>
+            </div>
+        `;
     }
 
     /**
@@ -115,14 +148,23 @@ document.addEventListener('DOMContentLoaded', () => {
         div.dataset.id = item.ID;
         div.dataset.category = item.Categoria;
 
+        const formattedPrice = (typeof item.Preco === 'number' && !isNaN(item.Preco) && item.Preco > 0)
+            ? `R$ ${item.Preco.toFixed(2).replace('.', ',')}`
+            : '';
+
         const purchasedInfo = item.Status === 'Comprado' ?
             `<span><i class="fas fa-check"></i> Comprado por: <strong>${item.CompradoPor}</strong></span>
              <span><i class="fas fa-clock"></i> Em: ${new Date(item.CompradoEm).toLocaleString('pt-BR')}</span>` : '';
 
         div.innerHTML = `
             <div class="item-main">
-                <p class="item-name">${item.Item}</p>
-                <p class="item-quantity">${item.Quantidade}</p>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <p class="item-name">${item.Item}</p>
+                        <p class="item-quantity">${item.Quantidade}</p>
+                    </div>
+                    ${formattedPrice ? `<p class="item-price" style="font-size: 1.4rem; font-weight: 600; color: #333;">${formattedPrice}</p>` : ''}
+                </div>
             </div>
             <div class="item-meta">
                 <span><i class="fas fa-user"></i> Adicionado por: <strong>${item.AdicionadoPor}</strong></span>
@@ -142,7 +184,9 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function populateCategories() {
         categories.clear();
-        fullShoppingList.forEach(item => categories.add(item.Categoria));
+        fullShoppingList.forEach(item => {
+            if(item.Categoria) categories.add(item.Categoria)
+        });
         
         const currentFilterValue = dom.categoryFilter.value;
         dom.categoryFilter.innerHTML = '<option value="all">Todas as Categorias</option>';
@@ -171,11 +215,12 @@ document.addEventListener('DOMContentLoaded', () => {
      * Exporta a lista atual para um arquivo CSV.
      */
     function exportToCsv() {
-        const headers = ['Item', 'Quantidade', 'Categoria', 'Status', 'AdicionadoPor', 'CompradoPor', 'CompradoEm'];
+        const headers = ['Item', 'Quantidade', 'Preco', 'Categoria', 'Status', 'AdicionadoPor', 'CompradoPor', 'CompradoEm'];
         const rows = fullShoppingList.map(item => 
             [
                 `"${item.Item}"`,
                 `"${item.Quantidade}"`,
+                `"${typeof item.Preco === 'number' ? item.Preco.toFixed(2) : '0.00'}"`,
                 `"${item.Categoria}"`,
                 `"${item.Status}"`,
                 `"${item.AdicionadoPor}"`,
@@ -219,6 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const newItem = {
             name: dom.itemName.value.trim(),
             quantity: dom.itemQuantity.value.trim(),
+            price: parseFloat(dom.itemPrice.value.replace(',', '.')) || 0,
             category: dom.itemCategory.value,
             addedBy: dom.currentUser.value
         };
@@ -227,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dom.modal.style.display = "none";
             dom.addItemForm.reset();
         } else {
-            alert('Por favor, preencha todos os campos.');
+            alert('Por favor, preencha todos os campos obrigatórios.');
         }
     }
 
