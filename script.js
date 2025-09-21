@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhrDcZV-v0o1PCiWBYiaTsZ5LTSEwT5hp20adxFPxN0IBkeOPEJ3N98icmv4XUc3bacw/exec';
+
+    const SCRIPT_URL = 'COLE_AQUI_O_SEU_NOVO_URL_DA_API';
 
     let loggedInUser = null; let fullShoppingList = []; let categories = new Set();
     const dom = {
@@ -75,6 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (item.Status === 'Pendente') { actionsHtml = '<button class="add-to-cart-btn"><i class="fas fa-cart-plus"></i> Por no Carrinho</button>'; }
         else if (item.Status === 'No Carrinho') { priceHtml = `<p style="font-size:1.4rem;font-weight:600;">R$ ${parseFloat(item.Preco||0).toFixed(2).replace('.',',')}</p>`; actionsHtml = '<button class="edit-price-btn"><i class="fas fa-pencil-alt"></i> Editar Preço</button>'; }
         const pInfo = item.Status === 'Comprado' ? `<span><i class="fas fa-check"></i> Por: <strong>${item.CompradoPor}</strong> em ${new Date(item.CompradoEm).toLocaleDateString('pt-BR')}</span>` : `<span><i class="fas fa-user"></i> Por: <strong>${item.AdicionadoPor}</strong></span>`;
+        if (item.Status === 'Arquivado') {
+             priceHtml = `<p style="font-size:1.2rem;font-weight:600;">R$ ${parseFloat(item.Preco||0).toFixed(2).replace('.',',')}</p>`;
+        }
         div.innerHTML = `<div class="item-main"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><p class="item-name">${item.Item}</p><p class="item-quantity">${item.Quantidade}</p></div>${priceHtml}</div></div><div class="item-meta">${pInfo}<span><i class="fas fa-tag"></i> Cat: <strong>${item.Categoria}</strong></span></div><div class="item-actions">${actionsHtml}<button class="delete-btn" title="Excluir"><i class="fas fa-trash"></i></button></div>`;
         return div;
     }
@@ -90,12 +94,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const currentSelection = dom.archiveFilter.value;
         dom.archiveFilter.innerHTML = '<option value="current">Compras Atuais</option>';
-        [...months.entries()].sort().reverse().forEach(([key, value]) => dom.archiveFilter.innerHTML += `<option value="${key}">${value}</option>`);
+        [...months.entries()].sort().reverse().forEach(([key, value]) => dom.archiveFilter.innerHTML += `<option value="${key}">${value.charAt(0).toUpperCase() + value.slice(1)}</option>`);
         dom.archiveFilter.value = currentSelection;
     }
     function updateVisibility() { dom.purchasedSection.style.display = dom.showPurchasedToggle.checked && dom.purchasedList.children.length > 0 ? 'block' : 'none'; }
     function showLoading(isLoading) { dom.loading.style.display = isLoading ? 'block' : 'none'; }
-    function handleListClick(e) { const btn = e.target.closest('button'); if (!btn) return; const card = e.target.closest('.list-item'); const id = card.dataset.id; if (['add-to-cart-btn', 'edit-price-btn'].some(c => btn.classList.contains(c))) { const item = fullShoppingList.find(i => i.ID === id); const price = item && item.Preco > 0 ? item.Preco : ''; const newPrice = prompt(`Preço de "${item.Item}"?`, price); if (newPrice !== null) { const n = parseFloat(newPrice.replace(',', '.')); if (!isNaN(n) && n >= 0) postData({ action: 'moveToCart', id, price: n }); else alert('Insira um número válido.'); } } else if (btn.classList.contains('delete-btn')) { if (confirm('Excluir este item?')) { postData({ action: 'deleteItem', id }); } } }
+    function handleListClick(e) { const btn = e.target.closest('button'); if (!btn) return; const card = e.target.closest('.item-list'); const id = card.dataset.id; if (['add-to-cart-btn', 'edit-price-btn'].some(c => btn.classList.contains(c))) { const item = fullShoppingList.find(i => i.ID === id); const price = item && item.Preco > 0 ? item.Preco : ''; const newPrice = prompt(`Preço de "${item.Item}"?`, price); if (newPrice !== null) { const n = parseFloat(newPrice.replace(',', '.')); if (!isNaN(n) && n >= 0) postData({ action: 'moveToCart', id, price: n }); else alert('Insira um número válido.'); } } else if (btn.classList.contains('delete-btn')) { if (confirm('Excluir este item permanentemente?')) { postData({ action: 'deleteItem', id }); } } }
     function handleFormSubmit(e) { e.preventDefault(); const item = { name: dom.itemName.value.trim(), quantity: dom.itemQuantity.value.trim(), category: dom.itemCategory.value, addedBy: loggedInUser.username }; if (item.name && item.quantity && item.category) { postData({ action: 'addItem', item }); dom.modal.style.display = "none"; dom.addItemForm.reset(); } else { alert('Preencha todos os campos.'); } }
     function handleCheckout() { const num = fullShoppingList.filter(i => i.Status === 'No Carrinho').length; if (num === 0) { alert("Não há itens no carrinho."); return; } if (confirm(`Finalizar compra de ${num} item(ns)?`)) { postData({ action: 'checkout', purchasedBy: loggedInUser.username }); } }
     function handleArchive() { if (confirm("Arquivar todos os itens já comprados? Eles poderão ser consultados no filtro de histórico.")) { postData({ action: 'archivePurchased' }); } }
@@ -128,4 +132,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     init();
 });
-
