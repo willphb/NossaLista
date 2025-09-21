@@ -1,3 +1,18 @@
+// REGISTRO DO SERVICE WORKER (ADICIONE NO TOPO DO SCRIPT.JS)
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => {
+        console.log('Service Worker registrado com sucesso:', registration);
+      })
+      .catch(error => {
+        console.log('Falha ao registrar o Service Worker:', error);
+      });
+  });
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- CONFIGURAÇÃO ---
@@ -130,4 +145,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     init();
 });
+
 
