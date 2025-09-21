@@ -35,15 +35,10 @@
     <div class="app-container">
         <header>
             <h1><i class="fas fa-cart-shopping"></i> Lista de Compras</h1>
-            <div class="user-selector">
-                <label for="currentUser">Eu sou:</label>
-                <select id="currentUser">
-                    <option>Pai</option>
-                    <option>Mãe</option>
-                    <option>Filho</option>
-                    <option>Filha</option>
-                </select>
-            </div>
+            <div class="user-display">
+    <span id="currentUserDisplay"></span>
+    <button id="logoutBtn" title="Sair"><i class="fas fa-sign-out-alt"></i></button>
+</div>
         </header>
 
         <div class="totals-container" id="totals-container">
@@ -108,4 +103,5 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
