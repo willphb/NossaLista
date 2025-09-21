@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- CONFIGURAÇÃO ---
-    const SCRIPT_URL = 'COLE_AQUI_O_SEU_URL_DO_APP_DA_WEB';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLSD1qPtHuYA6SqNzr_BzQk-_r4NKIFqDi9ZdVUJWYSKDf_ul83qNQIUaDOCECtsW8UQ/exec';
 
     // --- ESTADO GLOBAL ---
     let loggedInUser = null;
@@ -281,3 +281,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     init();
 });
+
