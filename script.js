@@ -16,7 +16,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
 
     // ❗ COLE AQUI O SEU NOVO URL DA API (OBTIDO NA ÚLTIMA IMPLANTAÇÃO)
-    const SCRIPT_URL = 'COLE_AQUI_O_SEU_NOVO_URL_DA_API';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-M3xeOUSNWLR4afNUvI4cGJOCSEllVF92SAGnX1tIVS3P8yY0s-CXROzW3Uec-bCQXg/exec';
 
     // --- ESTADO GLOBAL ---
     let loggedInUser = null;
@@ -186,3 +186,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     init();
 });
+
